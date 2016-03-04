@@ -10,3 +10,6 @@ expectedFrequencies<- c(16.56,97.29,70.38,22.77) #calculated based on proportion
 chisq.test(originalFrequencies, p = expectedFrequencies /sum(expectedFrequencies))
 #OR
 chisq.test(originalFrequencies, p = expectedProportions)
+
+#ch
+a<-5
