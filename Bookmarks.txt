@@ -1,2 +1,0 @@
-http://ysinjab.com/2015/03/28/hello-spark/
-http://stackoverflow.com/questions/28265330/install-spark-issue-cannot-open-ipython-notebook-with-pyspark
