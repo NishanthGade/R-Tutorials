@@ -157,6 +157,9 @@ tm = topMonths.select(topMonths['new_ts'].alias("Month"), topMonths['u'].alias("
 tm.toPandas().to_csv('D:/INSOFE/Big Data/Project/TopWebsitesByMonth.csv', index=False)
 
 
-I am not very sure but this might be the case since you are including all the attributes in your equation including 'crim' which was used to derive the 'TARGET' attribute (based on the median). Since all of the prediction is explained by this single attribute, it gives 100% accuracy which does not make any sense.
-
-What I have done is exclude the 'crim' attribute from the regression equation and it seemed to have worked without any warning messages and gave a believable accuracy around 90%.
+7zip
+Anaconda
+Chrome
+ExcelViewer
+jdk-8u74-windows-x64
+R-3.2.3-win
