@@ -1,55 +1,27 @@
-dat <- attitude
-str(dat)
-summary(dat)
+# Clear the env
+rm(list=ls())
 
-# removing the predictor variable
-dat <- dat[,-1]
+# Set the current working dir
+setwd("D:\\INSOFE\\Project\\Job recommendation engine")
 
-# Covariance matrix
-c <- cov(dat)
-diag(c) <- 0
-c
+# Read the job views file
+jv <- read.csv("Job_Views.csv", header=T)
 
-library(gclus)
-dta.r <- abs(cor(dat)) # get correlations
-dta.col <- dmat.color(dta.r) # get colors
+# Get the structure of the dataset
+str(jv)
 
-# reorder variables so those with highest correlation 
-# are closest to the diagonal
-dta.o <- order.single(dta.r)
+# View the first few rows
+head(jv)
 
-cpairs(dat, dta.o, panel.colors=dta.col, gap=.5, main="Variables Ordered and Colored by Correlation" )
+# Move only Applicant.ID, Job.ID, View.Start, View.End, View.Duration
+library(dplyr)
+dat1 <- jv %>% filter(Dur) %>% select(Applicant.ID, Job.ID, View.Start, View.End, View.Duration)
 
-attLM <- lm(rating~., data=attitude)
-summary(attLM)
+starttime <- as.POSIXlt(dat1$View.Start)
+startsec <- starttime$hour*3600 + starttime$min*60 + starttime$s
 
-attLMPred <- predict(attLM, dat)
+endtime <- as.POSIXlt(dat1$View.End)
+endsec <- endtime$hour*3600 + endtime$min*60 + endtime$s
 
-library(DMwR)
-regr.eval(attitude$rating, attLMPred)
-
-#Now perform PCA. 
-pca_data = princomp(dat) 
-print(pca_data)
-
-# understanding summary of PCA
-summary(pca_data)
-
-# Understanding new component weights
-pca_data$loadings
-
-# screeplot.default plots the variances against the number of the principal component. This is 
-#also the plot method for classes "princomp" and "prcomp". 
-screeplot(pca_data, type = "lines")
-
-# New feature matrix 
-pca_data$scores
-
-final <- data.frame(rating=attitude$rating, pca_data$scores)
-
-attLMPCA <- lm(rating~., data=final)
-summary(attLMPCA)
-
-attLMPredPCA <- predict(attLM, dat)
-
-regr.eval(attitude$rating, attLMPredPCA)
+dat1 <- dat1 %>% mutate(abs(starttime$hour-endtime$hour)*3600)
+summary(startdate)
