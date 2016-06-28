@@ -1,75 +1,57 @@
-# Clear the env
 rm(list=ls())
 
-# Set the current working dir
-setwd("D:\\INSOFE\\Project\\Job recommendation engine")
+dat <- read.csv("D:\\INSOFE\\Project\\Job recommendation engine\\TrainData.csv")
 
-# Read the job views file
-jv <- read.csv("Job_Views.csv", header=T)
+str(dat)
+sum(is.na(dat))
 
-# Get the structure of the dataset
-str(jv)
-
-# View the first few rows
-head(jv)
-
-
-dat1 <- jv %>% select(Title, Position, Company, City, View.Duration) 
-datCC <- dat1[complete.cases(dat1),]
-sum(is.na(datCC))
-
-par(mfrow=c(3,2))
-boxplot(datCC$View.Duration, main="All obervations")
-boxplot(datCC[datCC$View.Duration<5000,]$View.Duration, main="Duration < 5000")
-boxplot(datCC[datCC$View.Duration<2000,]$View.Duration, main="Duration < 2000")
-boxplot(datCC[datCC$View.Duration<1000,]$View.Duration, main="Duration < 1000")
-boxplot(datCC[datCC$View.Duration<800,]$View.Duration, main="Duration < 800")
-boxplot(datCC[datCC$View.Duration<500,]$View.Duration, main="Duration < 500")
-
-dat2 <- dat1 %>% filter(zscore < 2)
-
-boxplot(dat1$View.Duration)
-
-mean(dat6$View.Duration)
-median(dat2$View.Duration)
-sd(dat2$View.Duration)
-
-dat3 <- dat2 %>% select(-zscore) %>% mutate(zscore=(View.Duration-mean(View.Duration))/sd(View.Duration))
-dat4 <- dat3 %>% filter(zscore < 2)
-
-d <- density(dat4$zscore)
-plot(d)
-
-mean(dat4$View.Duration)
-median(dat4$View.Duration)
-sd(dat4$View.Duration)
-
-dat5 <- dat4 %>% select(-zscore) %>% mutate(zscore=(View.Duration-mean(View.Duration))/sd(View.Duration))
-dat6 <- dat5 %>% filter(zscore < 2)
-
-d <- density(dat6$zscore)
-plot(d)
-
-mean(dat6$View.Duration)
-median(dat6$View.Duration)
-sd(dat6$View.Duration)
-
-dat7 <- dat6 %>% filter(zscore < 0.5)
-max(dat6$View.Duration)
-
-nrow(dat1[dat1$zscore>2,])
-
-d <- density(jv[!is.na(jv$View.Duration) & jv$View.Duration < 3600,]$View.Duration)
-plot(d)
-
-# Move only Applicant.ID, Job.ID, View.Start, View.End, View.Duration
 library(dplyr)
+# Get the count of no. of jobs rated by each user
+ratingCount <- dat %>% group_by(ApplicantID) %>% summarise(NoOfRating = n())
 
+par(mfrow=c(1,1))
+# Bin the no. of jobs rated and plot it against no. of users
+hist(ratingCount$NoOfRating, breaks =20, col="SkyBlue",
+     xlab = "No. of Jobs Rated", ylab = "No. of USers",
+     main="Distribution of Users with Number of Jobs Rated")
 
-library(DMwR)
+# Plot the Prob density of no. of jobs rated
+d <- density(ratingCount$NoOfRating)
+plot(d, main="Probability Density of Users with Number of Jobs Rated")
+polygon(d, col="SkyBlue", border="black")
 
-# Consider only those views that do not have NA value and Duration < 3600 (1 hour)
+library(reshape2)
+# Convert long format data to wide format to make a matrix with sers as rows and jobs as columns"
+datmat <- dcast(dat, ApplicantID~JobID)
 
-dat2 <- knnImputation(dat1, k=7, scale=T)
+# Get no. of users who rated
+nrow(datmat)
 
-dat3 <- cbind(dat1, NewDuration=dat2$View.Duration)
+# Get no. of jobs that are rated
+ncol(datmat)
+
+library(Matrix)
+M <- sparseMatrix(i=dat[,1], j=dat[,2], x=dat[,3])
+head(M)
+M[4,8]
+
+library(irlba)
+s <- irlba(M, nu=5, nv=5)
+
+a <- as.vector(datmat[1,])
+
+mat <- as.matrix(datmat)
+
+mat2 <- mat
+mat2[which(is.na(mat2))] <- 0
+
+library(vegan)
+mat2 <- decostand(mat2, method="range")
+s <- svd(mat2)
+
+#install.packages("irlba")
+library(irlba)
+
+dat[dat$ApplicantID==14616,]
+nrow(dat)
+ncol(datmat)
