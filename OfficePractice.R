@@ -1,6 +1,6 @@
 rm(list=ls())
 
-dat <- read.csv("D:\\INSOFE\\Project\\Job recommendation engine\\TrainData.csv")
+dat <- read.csv("E:\\INSOFE\\Project\\Job Recommendation\\Dataset\\TrainData.csv")
 
 str(dat)
 sum(is.na(dat))
@@ -23,6 +23,7 @@ polygon(d, col="SkyBlue", border="black")
 library(reshape2)
 # Convert long format data to wide format to make a matrix with sers as rows and jobs as columns"
 datmat <- dcast(dat, ApplicantID~JobID)
+rownames(datmat) <- datmat[,1]
 
 # Get no. of users who rated
 nrow(datmat)
@@ -32,8 +33,25 @@ ncol(datmat)
 
 library(Matrix)
 M <- sparseMatrix(i=dat[,1], j=dat[,2], x=dat[,3])
+
+library(irlba)
+s <- irlba(M, nu=100, nv=100)
+
+### similarity
+
+# Creating function to calculate the cosine between two vectors
+getCosine <- function(x,y) 
+{
+  cosine <- abs(sum(x*y) / (sqrt(sum(x*x)) * sqrt(sum(y*y))))
+  return(cosine)
+}
+
+moreThan20 <- ratingCount %>% filter(NoOfRating>=20) %>% arrange(desc(NoOfRating)) %>% head(10)
+
 head(M)
-M[4,8]
+
+
+M[601,81]
 
 library(irlba)
 s <- irlba(M, nu=5, nv=5)
