@@ -31,12 +31,6 @@ nrow(datmat)
 # Get no. of jobs that are rated
 ncol(datmat)
 
-# library(Matrix)
-# M <- sparseMatrix(i=dat[,1], j=dat[,2], x=dat[,3])
-# 
-# library(irlba)
-# s <- irlba(M, nu=100, nv=100)
-
 ### similarity
 
 # Creating function to calculate the cosine between two vectors
@@ -49,14 +43,10 @@ getCosine <- function(x,y)
 # Get the users who rated more than 20 jobs
 moreThan20 <- ratingCount %>% filter(NoOfRating>=20) %>% arrange(desc(NoOfRating)) %>% head(10)
 
-# library(irlba)
-# s <- irlba(M, nu=5, nv=5)
-# 
-# a <- as.vector(datmat[1,])
-
 # Convert dataframe to matrix form
 mat <- as.matrix(datmat)
 
+# Remove the 1st column Applicant Id
 mat2 <- mat[,-1]
 
 # Replace missing values with 0s
@@ -74,11 +64,11 @@ e_sqare_energy = (e/sum(e))*100
 # Get the cumulative sum of varainces for each eigen value
 cumsum(e_sqare_energy)[1:2021]
 
-# Get the user space matrix with top n eigen vectors
+# Get the user space matrix with top 2021 eigen vectors which explain 90% variance
 user <- data.frame(s$u[,1:2021])
 rownames(user) <- rownames(datmat)
 
-# Get the job space matrix with top n eigen vectors
+# Get the job space matrix with top 2021 eigen vectors which explain 90% variance
 jobmat <- data.frame(s$v[,1:2021])
 rownames(jobmat) <- names(datmat[,-1])
 
@@ -91,14 +81,16 @@ for (i in 1:nrow(user))
   }
 }
 
-userCosineValues <- c()
+# Fucntion to find cosine similarity of each user with other users
 getCosineSimilarityOfUsers <- function(Applicant,ratedUsers) 
 {
   userCosineValues <- c()
   for(i in 1:nrow(ratedUsers))
   {
+    # Consider users excluding current applicant
     if(ratedUsers$ApplicantID[i] != Applicant)
     {
+      #Call function to get cosine value
       userCosineValues[i] <- getCosine(user[rownames(user)==Applicant,], user[rownames(user)==ratedUsers$ApplicantID[i],])     
     }
 
@@ -155,17 +147,44 @@ predictRating <- function(Applicant, Job)
   #return(ratedUsers)
 }
 
-
-
-
-
 # Get the predicted ratings of all applicants for jobs which they have given ratings
 for (i in 1:nrow(master))
 {
   master$PredictedRating[i] <- predictRating(as.numeric(master[i,1]), as.numeric(master[i,2]))
 }
-
 master <- master[!is.na(master$PredictedRating),]
+
+# Get the best recommendation for a user based on all jobs
+getRecommendationAllJobs <- function(Applicant)
+{
+  predictions <- data.frame(Job=0, Rating=0)
+  # Get the predictions for all the jobs
+  for(i in 2:ncol(datmat))
+  {
+    cat(i, " ")
+    predictions[i,2] <- predictRating(Applicant, as.numeric(names(datmat)[i]))
+    predictions[i,1] <- as.numeric(names(datmat)[i])
+  }
+  return(predictions[which(predictions$Rating==max(predictions$Rating)), 1])
+}
+
+# Get the best recommendation for a user based on similar users rated jobs
+getRecommendationSimilarUSers <- function(Applicant)
+{
+  # Get distinct users
+  distUsers <- master %>% group_by(ApplicantID) %>% count(ApplicantID)
+
+  # Get cosine similarity with all users
+  distUsers$UserCorrelations <- getCosineSimilarityOfUsers(Applicant, distUsers)
+
+  # Get top 20 closest users
+  distUsers <- distUsers %>% arrange(desc(UserCorrelations)) %>% head(20)
+
+  return(distUsers)
+}
+
+r<-getRecommendationSimilarUSers(11314)
+r <- predictRating(11314, 456)
 
 #master$PredictedRating <- apply(master[,1], 1, predictRating, master[,2])
 #master$PredictedRating <- lapply(master[,1], predictRating, master[,2])
@@ -173,23 +192,3 @@ master <- master[!is.na(master$PredictedRating),]
 # Evaluate the model for prediction
 RMSE <- sqrt(sum((master$Rating-master$PredictedRating)*(master$Rating-master$PredictedRating))/nrow(master))
 Accuracy <- nrow(master[abs(master$Rating-master$PredictedRating) < 0.75,])/nrow(master)
-
-r <- predictRating(11314, 4073)
-
-ru[ru$ApplicantID==9204 & ru$variable==456,]
-master[master$ApplicantID==9204 & master$JobID==456,]
-View(ru[1:10, 1:10])
-
-
-View(datmat[1:10, 1:10])
-View(userCosineValues[1:10, 1:10])
-
-user42 <- datmat[1,]
-user42T <- t(user42)
-names(user42T) <- "42"
-user42T[!is.na(user42T),]
-
-user601 <- datmat[4,]
-user601T <- t(user601)
-names(user601T) <- "601"
-user601T[!is.na(user601T),]
