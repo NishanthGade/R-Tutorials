@@ -1,3 +1,51 @@
+from pyspark import SparkConf, SparkContext
+conf = SparkConf().setAppName("First")
+sc = SparkContext(conf=conf)
+
+lang = sc.textFile("D:\Nishanth\Dataset\Job recommendation engine\Languages.csv")
+cred = sc.textFile("D:\Nishanth\Dataset\Job recommendation engine\Credentials.csv")
+
+lang.take(5)
+
+l1f = lang.first()
+c2f = cred.first()
+
+l1 = lang.filter(lambda l : l != l1f and len(l.split(","))!=0 and l.split(",")[0]!="").map(lambda l: (int(l.split(",")[0]), l))
+c2 = cred.filter(lambda l : l != l2f and len(l.split(","))!=0 and l.split(",")[0]!="").map(lambda l: (int(l.split(",")[0]), l))
+
+final = l1.join(c2)
+langCount = l1.map(lambda l: (l[1].split(",")[1], 1)).reduceByKey(lambda a,b: a+b).map(lambda (a,b): (b,a)).sortByKey(0).map(lambda (a,b): (b.replace('"',"")+","+str(a)))
+
+l1.map(lambda l: (l[1].split(",")[1], 1)).countByKey()
+
+
+samp = sc.textFile("D:\Nishanth\Dataset\Sample\samp.txt")
+s = samp.cache()
+
+# Total
+samp1 = s.map(lambda l: (int(l.split("\t")[1]))).reduce(lambda a,b:a+b)
+samp1
+
+# Total
+samp2 = s.map(lambda l: l.split("\t")).map(lambda l: (1,int(l[1]))).reduceByKey(lambda a,b: a+b).map(lambda l: l[1])
+samp2.collect()
+
+# Distict 
+samp3 = s.map(lambda l: l[0]).distinct().count()
+samp3
+
+# Average
+Avg = samp1/samp3
+Avg
+
+
+
+
+
+
+
+
+
 rm(list=ls(all=T))
 library(dplyr)
 #install.packages("caTools")
