@@ -38,7 +38,24 @@ samp3
 Avg = samp1/samp3
 Avg
 
+# Average per key
+totalPerKey = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).reduceByKey(lambda a,b: a+b)
+countPerKey = s.map(lambda l: (l.split("\t")[0],1)).reduceByKey(lambda a,b: a+b)
+totalPerKey.collect()
+countPerKey.collect()
 
+for i in countPerKey.collect():
+    print i
+    
+avgPerKey = totalPerKey.join(countPerKey).map(lambda l: (l[0], l[1][0]/l[1][1]))
+avgPerKey.collect()
+
+cpk = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).aggregateByKey(0, lambda acc,val:acc+1, lambda acc,val:acc+val)
+tpk = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).aggregateByKey(0, lambda acc,val:acc+val, lambda acc,val:acc+val)
+tpk.collect()
+cpk.collect()
+
+s.filter(lambda l: l.split("\t")[2] in " ").collect()
 
 
 
