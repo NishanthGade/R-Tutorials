@@ -55,9 +55,67 @@ tpk = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).aggregateByKey(
 tpk.collect()
 cpk.collect()
 
-s.filter(lambda l: l.split("\t")[2] in " ").collect()
+# in "w" does exact string matches. "w" in does wild card search
+s.filter(lambda l: l.split("\t")[2] in "w").collect()
+s.filter(lambda l: "w" in l.split("\t")[2]).collect()
+    
+s.filter(lambda l: "w" not in l.split("\t")[2]).collect()
+    
+gbk = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).groupByKey().map(lambda l: (l[0], sum(l[1])))
+gbk.collect()
+    
+    
+    
+    
+    
+    
+    
+    
+val dou = pi*2
+println(s"Doubling of pi is ${f"$dou%.3f"}")
+    
+    
+var f=0
+var s=1
+var n=0
+var c=0
+var str:String = f.toString()
+while(c < 10)
+ {
+  str = str+", "+s
+  n=f+s
+  f=s
+  s=n
+  c+=1
+ }
+println(str)    
+    
+
+def userUpper(str: String): String = {
+str.toUpperCase()
+}
+  
+println(userUpper("hello"))
+  
+def testFunc(str: String, f: String => String): String = {
+f(str)
+}
+  
+println(testFunc("hello", userUpper))
+  
+println(testFunc("hello", str => str.toUpperCase()))    
 
 
+val test = List(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
+
+for(a <- test)
+{
+  if(a%3 == 0)
+    println(a)
+}
+
+val a = test.filter((x: Int) => x%3 == 0)
+println(a)
 
 
 
