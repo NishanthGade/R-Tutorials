@@ -65,7 +65,23 @@ gbk = s.map(lambda l: (l.split("\t")[0], int(l.split("\t")[1]))).groupByKey().ma
 gbk.collect()
     
     
+from pyspark import SparkContext,SparkConf
+from pyspark.sql import SQLContext,Row
     
+conf = SparkConf().setAppName("sql")
+sc = SparkContext(conf=conf)
+sqlContext = SQLContext(sc)
+
+samp = sc.textFile("D:\Nishanth\Dataset\Sample\samp.txt").map(lambda l: l.split("\t"))
+s = samp.cache()
+
+schema =  s.map(lambda l: Row(id = l[0], sal = int(l[1]), desc = l[2]))
+
+sschema = sqlContext.inferSchema(schema)
+
+sschema.registerTempTable("sam")
+
+emp = sqlContext.sql("select * from sam where sal >= 100 order by id desc")    
     
     
     
